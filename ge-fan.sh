@@ -1,5 +1,8 @@
 #!/bin/bash
 
+devices=$(nvidia-smi -L | awk '{print $2}' | sed 's/.$//' | tr '\n' ' ')
+
+echo "ge-fan devices $devices"
 trap ctrl_c INT
 trap term TERM
 
@@ -38,17 +41,17 @@ constrain(){
 }
 
 init(){
-  for i in `seq 0 1`;
+  for i in $devices;
   do
-    nvidia-settings -a "[gpu:$i]/GPUFanControlState=1" -t > /dev/null
+    nvidia-settings -c :0 -a "[gpu:$i]/GPUFanControlState=1" -t > /dev/null
   done
 }
 
 finish(){
-  for i in `seq 0 1`;
+  for i in $devices;
   do
-    nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=0" -t > /dev/null
-    nvidia-settings -a "[gpu:$i]/GPUFanControlState=0" -t > /dev/null
+    nvidia-settings -c :0 -a "[fan:$i]/GPUTargetFanSpeed=0" -t > /dev/null
+    nvidia-settings -c :0 -a "[gpu:$i]/GPUFanControlState=0" -t > /dev/null
   done
 }
 
@@ -58,25 +61,22 @@ adjust_fan(){
 
   new_fan="$((${CURVE[$temp]}))"
   new_fan=$(constrain $new_fan)
-  nvidia-settings -a "[fan:$gpu_id]/GPUTargetFanSpeed=$new_fan" > /dev/null
+  nvidia-settings -c :0 -a "[fan:$gpu_id]/GPUTargetFanSpeed=$new_fan" > /dev/null
 }
 
 sample(){
-for i in `seq 0 1`;
+for i in $devices;
 do
-  temp=$(nvidia-settings -q "[gpu:$i]/GPUCoreTemp" -t)
-  #echo "GPU:$i temp = $temp" 
-  #t_delta="$(($temp-$TARGET_TEMP))"
+  temp=$(nvidia-settings -c :0 -q "[gpu:$i]/GPUCoreTemp" -t)
   adjust_fan $i $temp
 done
 }
 
 init;
-echo "Press [Ctrl+C] to stop."
 while true
 do 
   sample;
-  sleep 3
+  sleep 5
 done
 
 
