@@ -1,8 +1,9 @@
 #!/bin/bash
 
+lockdir=/tmp/ge-fan.lock
+
 devices=$(nvidia-smi -L | awk '{print $2}' | sed 's/.$//' | tr '\n' ' ')
 
-echo "ge-fan devices $devices"
 trap ctrl_c INT
 trap term TERM
 
@@ -17,13 +18,13 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 IFS=$'\r\n' GLOBIGNORE='*' command eval  'CURVE=($(cat $DIR/curve.txt))'
 
 ctrl_c(){
-  echo "Finishing up."
+  echo "Interrupted..." 
   finish
   exit 0
 }
 
 term(){
-  echo "Terminating."
+  echo "Terminating..."
   finish
   exit 0
 }
@@ -41,6 +42,12 @@ constrain(){
 }
 
 init(){
+  if mkdir "$lockdir"
+  then 
+    trap 'rm -rf "$lockdir"' 0
+  else
+    exit 0
+  fi  
   for i in $devices;
   do
     nvidia-settings -c :0 -a "[gpu:$i]/GPUFanControlState=1" -t > /dev/null
