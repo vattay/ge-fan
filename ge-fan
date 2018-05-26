@@ -68,6 +68,7 @@ adjust_fan(){
 
   new_fan="$((${CURVE[$temp]}))"
   new_fan=$(constrain $new_fan)
+  echo "Temp: $temp Fan: $new_fan"
   nvidia-settings -c :0 -a "[fan:$gpu_id]/GPUTargetFanSpeed=$new_fan" > /dev/null
 }
 
@@ -83,7 +84,7 @@ init;
 while true
 do 
   sample;
-  sleep 5
+  sleep 10
 done
 
 
