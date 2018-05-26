@@ -1,3 +1,3 @@
 #!/bin/bash
 
-nohup ./ge-fan 1 >> log/ge-fan.log 2> log/ge-fan-err.log &
+nohup ./ge-fan 1 >> ~/stasis/ge-fan/log/ge-fan.log 2> ~/stasis/ge-fan/log/ge-fan-err.log &
