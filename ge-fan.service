@@ -1,8 +1,0 @@
-[Unit]
-Description=Nvidia GPU Fan Controller
-
-[Service]
-ExecStart=/usr/bin/ge-fan
-
-[Install]
-WantedBy=multi-user.target
