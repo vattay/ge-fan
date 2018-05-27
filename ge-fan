@@ -1,5 +1,16 @@
 #!/bin/bash
 
+TICK=1
+NDISP=''
+
+if [ -z ${DISPLAY+x} ]; then
+    NDISP=':0'
+else 
+    NDISP=$DISPLAY
+fi
+
+echo "Using DISPLAY $DISPLAY"
+
 lockdir=/tmp/ge-fan.lock
 
 devices=$(nvidia-smi -L | awk '{print $2}' | sed 's/.$//' | tr '\n' ' ')
@@ -50,15 +61,15 @@ init(){
   fi  
   for i in $devices;
   do
-    nvidia-settings -c :0 -a "[gpu:$i]/GPUFanControlState=1" -t > /dev/null
+    nvidia-settings -c $NDISP -a "[gpu:$i]/GPUFanControlState=1" -t > /dev/null
   done
 }
 
 finish(){
   for i in $devices;
   do
-    nvidia-settings -c :0 -a "[fan:$i]/GPUTargetFanSpeed=0" -t > /dev/null
-    nvidia-settings -c :0 -a "[gpu:$i]/GPUFanControlState=0" -t > /dev/null
+    nvidia-settings -c $NDISP -a "[fan:$i]/GPUTargetFanSpeed=0" -t > /dev/null
+    nvidia-settings -c $NDISP -a "[gpu:$i]/GPUFanControlState=0" -t > /dev/null
   done
 }
 
@@ -69,13 +80,13 @@ adjust_fan(){
   new_fan="$((${CURVE[$temp]}))"
   new_fan=$(constrain $new_fan)
   echo "Temp: $temp Fan: $new_fan"
-  nvidia-settings -c :0 -a "[fan:$gpu_id]/GPUTargetFanSpeed=$new_fan" > /dev/null
+  nvidia-settings -c $NDISP -a "[fan:$gpu_id]/GPUTargetFanSpeed=$new_fan" > /dev/null
 }
 
 sample(){
 for i in $devices;
 do
-  temp=$(nvidia-settings -c :0 -q "[gpu:$i]/GPUCoreTemp" -t)
+  temp=$(nvidia-settings -c $NDISP -q "[gpu:$i]/GPUCoreTemp" -t)
   adjust_fan $i $temp
 done
 }
@@ -84,7 +95,7 @@ init;
 while true
 do 
   sample;
-  sleep 10
+  sleep $TICK
 done
 
 
