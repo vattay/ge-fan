@@ -9,5 +9,10 @@ else
     echo "Logging to '$LOGDIR'" 
 fi
 
+if [ -z ${DISPLAY} ]; then
+    echo "No default DISPLAY"
+    export DISPLAY=':0'
+fi
+
 mkdir -p log
 nohup ./ge-fan 1> $SLOG_STD 2> $SLOG_ERR &
